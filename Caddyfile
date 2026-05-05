@@ -2,6 +2,9 @@
 # Deploy to /etc/caddy/Caddyfile
 
 lumen.albertwenger.me, lumenftf.com {
+    # HSTS applies to all responses, including proxied ones
+    header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
     # WebSocket at root (OpenClaw Control UI connects here)
     @websocket {
         header Connection *Upgrade*
@@ -29,6 +32,16 @@ lumen.albertwenger.me, lumenftf.com {
     }
 
     # Serve static homepage at root (non-websocket)
-    root * /var/www/lumen
-    file_server
+    handle {
+        header {
+            X-Content-Type-Options nosniff
+            X-Frame-Options DENY
+            Referrer-Policy strict-origin-when-cross-origin
+            Permissions-Policy "geolocation=(), microphone=(), camera=()"
+            Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
+            -Server
+        }
+        root * /var/www/lumen
+        file_server
+    }
 }
